@@ -14,7 +14,7 @@ spark = SparkSession \
     .builder \
     .appName("COMP5349 Assignment2 Dataset")\
     .config("spark.executor.memory", "4g")\
-    .config("spark.driver.memory", "4g")\
+    .config("spark.driver.memory", "6g")\
     .config("spark.sql.inMemoryColumnarStorage.compressed", "true")\
     .config("spark.sql.execution.arrow.enabled", "true")\
     .getOrCreate()
