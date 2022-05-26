@@ -31,7 +31,7 @@ testing_df.show(1)
 #Print the structure diagram of the data
 testing_df.printSchema()
 
-"""### **Spark sql解析嵌套JSON文件**"""
+"""### **Spark sql parses nested JSON files**"""
 
 #Use select to select rows and explode to expand the array to multiple rows
 from pyspark.sql import SparkSession
@@ -65,7 +65,7 @@ final_table_df = qas_answers_df.select(
 
 final_table_df.show(5)
 
-"""### **Create positive samples**"""
+"""### **Create positive and possible negative samples**"""
 
 #Find contracts with answers to questions and display them
 possible_sample_df = final_table_df.where(
@@ -87,8 +87,9 @@ possible_sample_rdd_tuple.take(3)
 import random
 def create_possible_sample(record):
   '''
-  根据4096的窗口大小和2048的步长对文本进行切割得到文本序列。
-  根据答案在文本中出现的位置，来判断序列是否含有答案或者部分含有答案，如果是则判断为positive samples，否则为Possible negative samples
+  The text sequence is obtained by cutting the text according to the window size of 4096 and the step size of 2048.
+  Based on the position of the answer in the text, the sequence is judged to contain the answer or part of the answer,
+  if yes, it is judged to be Positive samples, otherwise it is Possible negative samples.
   '''
   output_list = [] #Create output_list list to save output
   poss_record = [] #Create a poss_record list to save positive samples
@@ -125,7 +126,7 @@ def create_possible_sample(record):
 poss_rdd = possible_sample_rdd_tuple.flatMap(create_possible_sample).cache()
 poss_rdd.take(3)
 
-"""### **Create negative sample**"""
+"""### **Create impossible negative samples**"""
 
 #Count the number of contracts that contain poss_record for each question
 possible_contract = possible_sample_df.groupBy("qas_question").count().withColumnRenamed("count","positive_contract_num")
@@ -156,7 +157,8 @@ count_table_rdd.take(5)
 #Calculate the number of Impossible negative samples
 def count_negtive_sample(record):
   '''
-  按照公式：每个问题positive samples的数量/每个问题含有poss_record的contract的数量 计算Impossible negative samples应该取的数量
+  Calculate the number of Impossible negative samples according to the
+  formula: Number of Positive samples per problem / Number of contracts containing poss_record per problem
   '''
   output = []
   #Determine whether the fractional part of the result is greater than 0.5, if it is greater than 0.5, enter 1, if it is small, discard it
